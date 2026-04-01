@@ -1,99 +1,37 @@
 # 🔴 Mini React Project
 
-> React의 핵심 원리를 Vanilla JavaScript로 직접 구현한 mini React 학습 프로젝트
+> React의 핵심 개념을 Vanilla JavaScript로 직접 구현하고 시연하는 mini React 프로젝트
 
-Virtual DOM, diff/patch, Function Component, State, Hooks 개념을 직접 구현하면서  
-React가 왜 이런 구조를 가지는지 이해하고 시연하기 위한 프로젝트입니다.
-
----
-
-## 🎯 핵심 구현 포인트
-
-| 포인트 | 구현 방식 | 의미 |
-|--------|----------|------|
-| 🧩 Component 분리 | `ProfileHeader`, `CareerInfo`, `SkillList` 등으로 화면 분리 | UI 역할 분리와 재사용성 향상 |
-| 📦 State 관리 | `gameState` + `useState` | 상태 변경과 화면 갱신 흐름 학습 |
-| 🪝 Hooks | `useState`, `useEffect`, `useMemo` 직접 구현 | 함수형 컴포넌트의 상태/효과/메모 구조 이해 |
-| 🔄 렌더링 흐름 | `FunctionComponent` + `mount()` + `update()` | 상태 변경 후 재렌더링 구조 구현 |
-| 🌳 화면 구조 | VNode 기반 화면 표현 | 실제 DOM 전 변경 구조 비교 |
-| ⚡ 최적화 | batching 확장 | 여러 상태 변경을 한 번의 렌더링으로 묶기 |
+기존 Virtual DOM 프로젝트를 기반으로  
+Function Component, State, Hooks, batching 개념까지 확장한 프로젝트입니다.
 
 ---
 
-## 🛠️ 기술 스택
+## 1. 프로젝트 개요
 
-```text
-Language      Vanilla JavaScript
-UI            HTML + CSS
-Rendering     Virtual DOM + diff / patch
-Component     FunctionComponent
-Hooks         useState / useEffect / useMemo
-State         gameState + Hook state
-Test          화이트박스 테스트 + 수동 검증
-```
+이 프로젝트는 기존 Virtual DOM / diff / patch 프로젝트를 기반으로,  
+React의 핵심 동작 원리를 직접 구현해 보며 이해하는 것을 목표로 했습니다.
 
----
+기존 프로젝트에서 디벨롭한 부분은 다음과 같습니다.
 
-## 🏗️ 아키텍처
-
-### 전체 흐름
-
-```text
-gameState
-   ↓
-getCurrentLevel()
-   ↓
-generateProfileVNode()
-   ↓
-ProfileCard(props)
-   ↓
-하위 컴포넌트
-   ↓
-최종 VNode
-   ↓
-diff / patch
-   ↓
-실제 DOM 반영
-```
-
-### 역할 분리 구조
-
-```text
-game.js
- └── 상태 계산, 레벨 정보 정리, 게임 액션 처리
-
-gameComponents.js
- └── props 기반 순수 함수 컴포넌트로 화면 조립
-
-component.js
- └── FunctionComponent, mount / update, 현재 렌더링 컴포넌트 관리
-
-hooks.js
- └── useState / useEffect / useMemo 구현
-```
-
-### Component 구조
-
-```text
-ProfileCard
- ├── ProfileHeader
- ├── CareerInfo
- ├── ExpBar
- ├── SkillList
- ├── ProjectList
- ├── WeaknessList
- └── StrengthList
-```
+- 화면을 컴포넌트 단위로 분리
+- `FunctionComponent` 구조 추가
+- `useState`, `useEffect`, `useMemo` 직접 구현
+- 상태 변경 시 재렌더링 흐름 연결
+- 여러 상태 변경을 한 번의 렌더링으로 묶는 batching 구조 확장
 
 ---
 
-## 🧠 핵심 개념
+## 2. 개념 설명
 
-### 1. Component
+### 2-1. Component란 무엇인가
 
-Component는 화면을 작은 역할 단위로 나누는 방식입니다.
+Component는 화면을 역할별로 나누는 방식입니다.
 
-이번 프로젝트에서는 하나의 큰 화면을 직접 조립하지 않고 아래처럼 분리했습니다.
+하나의 큰 화면을 직접 조립하는 대신,  
+작은 UI 단위로 나누면 구조가 더 명확해지고 수정 범위도 줄어듭니다.
+
+이번 프로젝트에서는 프로필 화면을 아래처럼 분리했습니다.
 
 - `ProfileHeader`
 - `CareerInfo`
@@ -104,13 +42,33 @@ Component는 화면을 작은 역할 단위로 나누는 방식입니다.
 - `StrengthList`
 - `ProfileCard`
 
-이를 통해:
+즉, 작은 컴포넌트들을 만들고 마지막에 `ProfileCard`가 전체 화면을 조립하는 구조입니다.
 
-- UI 구조를 더 명확하게 만들고
-- 수정 범위를 줄이고
-- 최종적으로 `ProfileCard`가 화면 전체를 조립하도록 구성했습니다.
+### 2-2. FunctionComponent 클래스 정의 및 사용 이유
 
-### 2. State
+함수형 컴포넌트는 단순히 함수를 실행하는 것만으로는 React처럼 동작할 수 없습니다.
+
+왜냐하면 React의 함수형 컴포넌트는:
+
+- 이전 상태를 기억해야 하고
+- Hook 순서를 유지해야 하고
+- 상태가 바뀌면 다시 렌더링할 수 있어야 하기 때문입니다.
+
+그래서 이번 프로젝트에서는 함수형 컴포넌트를 감싸는 `FunctionComponent` 클래스를 구현했습니다.
+
+#### 함수와 클래스의 차이 관점에서 보면
+
+- 일반 함수
+  - 실행 후 끝남
+  - 이전 상태를 자체적으로 저장하지 않음
+- `FunctionComponent` 클래스
+  - 컴포넌트 인스턴스를 유지함
+  - `hooks[]`, `hookIndex`, `vNode`, `container` 같은 값을 저장할 수 있음
+  - `mount()`와 `update()`를 통해 렌더링 흐름을 관리할 수 있음
+
+즉, 함수형 컴포넌트가 “상태를 가진 구조”로 동작하도록 만들기 위해 클래스가 필요했습니다.
+
+### 2-3. state 관리 방식
 
 State는 화면을 바꾸는 기준이 되는 데이터입니다.
 
@@ -120,116 +78,171 @@ State는 화면을 바꾸는 기준이 되는 데이터입니다.
 - 경험치
 - 골드
 
-즉 상태가 바뀌면:
+예를 들어 상태가 바뀌면:
 
 - 경험치 바가 바뀌고
 - 골드 표시가 바뀌고
-- 레벨에 따라 기술 스택과 프로젝트도 달라집니다
+- 레벨업 시 보여주는 내용도 달라집니다
 
-그래서 상태를 저장하는 것뿐 아니라,  
-상태 변경 이후 화면을 다시 계산하는 구조가 중요했습니다.
+즉, 상태는 단순한 값 저장이 아니라  
+“화면을 다시 계산하게 만드는 기준 데이터”라는 점이 중요합니다.
 
-### 3. Hooks
+### 2-4. hooks 구현 방식 및 메서드 설명
 
-Hooks는 함수형 컴포넌트 안에서 상태와 부수효과를 다루기 위한 구조입니다.
+Hook은 함수형 컴포넌트 안에서 상태와 부수효과를 다루기 위한 구조입니다.
 
-이번 프로젝트에서는 아래 3가지를 직접 구현했습니다.
+이번 프로젝트에서는 `hooks[]` 배열과 `hookIndex`를 사용해 Hook 상태를 저장했습니다.
 
-- `useState`
-  - 상태 저장 및 setter 제공
-- `useEffect`
-  - 렌더링 이후 실행되는 부수 효과 처리
-- `useMemo`
-  - 비싼 계산 결과를 재사용
+#### `useState`
 
-Hook 상태는 함수 내부가 아니라 `hooks[]` 배열에 저장되며,  
-`hookIndex`를 통해 매 렌더링마다 같은 순서로 접근합니다.
+- 상태를 저장합니다
+- setter를 통해 값을 변경합니다
+- 상태가 바뀌면 다시 렌더링이 일어나도록 연결합니다
 
----
+#### `useEffect`
 
-## 🏛️ FunctionComponent의 역할
+- 렌더링 이후 실행되는 부수 효과를 처리합니다
+- `callback`과 `deps`를 받아, deps가 바뀌었을 때만 effect를 다시 실행합니다
+- effect는 렌더링 중 바로 실행하지 않고, 렌더링 이후 실행되도록 큐에 넣는 방식으로 구현했습니다
 
-`FunctionComponent`는 함수형 컴포넌트가 React처럼 동작할 수 있도록  
-렌더링 흐름과 Hook 상태를 연결하는 핵심 구조입니다.
+#### `useMemo`
 
-주요 역할은 다음과 같습니다.
-
-- 현재 렌더링 중인 컴포넌트 추적
-- Hook 상태가 저장될 공간(`hooks[]`) 제공
-- Hook 호출 순서(`hookIndex`) 관리
-- `mount()`를 통한 최초 렌더링 처리
-- `update()`를 통한 재렌더링 처리
-- 이전 VNode와 새 VNode를 비교해 diff / patch 연결
-- 렌더링 이후 effect 실행 시점 관리
-
-즉, 단순히 함수를 실행하는 것이 아니라  
-함수형 컴포넌트가 상태를 가지는 구조로 동작할 수 있게 만드는 역할을 합니다.
+- 계산 결과를 기억해두는 Hook입니다
+- deps가 바뀌지 않으면 이전 계산 결과를 재사용합니다
+- 불필요한 반복 계산을 줄이는 역할을 합니다
 
 ---
 
-## 🧩 역할 분배
+## 3. 시연
 
-| 팀원 | 담당 파일 | 역할 |
-|------|-----------|------|
-| 고민석 | `component.js` | `FunctionComponent` 구현, 렌더링 흐름 연결 |
-| 박승현 | `hooks.js` | `useState`, `useEffect`, `useMemo` 구현 |
-| 강지현 | `game.js`, `gameComponents.js` | 프로필 UI 컴포넌트 분리, `ProfileCard` 기반 연결 |
-| 김은재 | `app.js`, `index.html` | 루트 App, 버튼 이벤트, PATCH 패널, 전체 화면 연결 |
+### 3-1. 기존 프로젝트에서 변경된 내용 보여주기
 
----
-
-## 🚀 주요 구현 내용
-
-### 게임 프로필 UI 컴포넌트 분리
-
-기존에는 `generateProfileVNode()` 안에서 `h1`, `p`, `ul`, `li`를 직접 조립했습니다.
+기존에는 `generateProfileVNode()` 안에서 직접 `h1`, `p`, `ul`, `li`를 조립했습니다.
 
 현재는:
 
 - `game.js`는 상태와 레벨 정보를 정리하고
-- `generateProfileVNode()`는 `ProfileCard(props)`에 데이터를 전달하며
-- 실제 화면 조립은 `gameComponents.js`가 담당하도록 변경했습니다.
+- `generateProfileVNode()`는 `ProfileCard(props)`를 호출하고
+- 실제 화면 조립은 `gameComponents.js`가 담당하는 구조로 바뀌었습니다
 
-### 조건부 섹션 처리
+### 3-2. 버튼 눌러서 hooks 배열이랑 deps 변경사항 설명
 
-`ProjectList`, `WeaknessList`, `StrengthList`는  
-데이터가 비어 있으면 `null`을 반환합니다.
+버튼을 누르면 상태가 바뀌고,  
+그 상태가 Hook 배열에 저장되며 다시 렌더링이 일어납니다.
 
-`ProfileCard`에서는:
+이때 hooks 패널에서는:
 
-```js
-.filter((child) => child !== null)
-```
+- 현재 `hooks[]` 배열 상태
+- `useState` 값 변화
+- `useEffect`의 deps 변화
 
-을 사용하여 화면에 필요 없는 섹션을 children 배열에서 제거합니다.
+를 확인할 수 있습니다.
 
-### Batching 확장
+즉, Hook이 함수 안에 있어도 값이 유지되는 이유를 시각적으로 설명할 수 있습니다.
+
+### 3-3. 레벨업 시 팝업 호출 원리 및 패널 설명
+
+레벨업은 상태 변화에 따라 발생합니다.
+
+- 액션 버튼 클릭
+- 경험치 증가
+- 최대 경험치 도달
+- 레벨 상태 변경
+- 화면 재렌더링
+
+이 과정에서 패널을 통해:
+
+- VDOM 변화
+- Hook 상태 변화
+- PATCH 내역
+
+을 함께 설명할 수 있습니다.
+
+### 3-4. 테스트하기 버튼 누르고 설명
+
+테스트 버튼을 누르면 white-box 테스트 로그가 패널에 표시됩니다.
+
+이때 발표에서는:
+
+- “테스트 항목은 뒤에서 다시 설명드리겠습니다”
+
+정도로 짧게 말하고,  
+테스트가 단순 화면 확인이 아니라 내부 동작 검증까지 포함한다는 점만 보여주면 됩니다.
+
+---
+
+## 4. 쟁점 포인트
+
+### 4-1. 루트 컴포넌트
+
+이번 구조에서는 루트 컴포넌트가 전체 화면 흐름을 관리합니다.
+
+중요한 점은:
+
+- 자식 컴포넌트는 상태를 직접 가지지 않고
+- props만 받는 순수 함수 구조로 두었다는 점입니다
+
+즉, 상태 관리와 화면 조립의 책임을 분리했습니다.
+
+### 4-2. state의 위치에 대해
+
+상태를 어디에 둘 것인가는 중요한 설계 포인트였습니다.
+
+이번 프로젝트에서는:
+
+- 게임 로직 상태는 `game.js`
+- Hook 기반 렌더링 상태는 `useState`
+
+로 나뉘어 있습니다.
+
+즉, 상태는 단순히 한 파일에 모아두는 것이 아니라  
+“어떤 책임의 상태인가”에 따라 위치를 나누어 생각해야 했습니다.
+
+### 4-3. setState가 상태 변경 외에 처리하는 일
+
+`setState`는 단순히 값을 바꾸는 것에서 끝나지 않습니다.
+
+추가로 해야 하는 일은:
+
+- 상태 변경 반영
+- 재렌더링 예약 또는 실행
+- 화면을 다시 계산할 수 있도록 렌더링 흐름 연결
+
+즉, `setState`는 “값 변경 + 화면 갱신 시작점” 역할을 합니다.
+
+### 4-4. 여러 상태 변경을 한 번에 처리하는 최적화 방법
 
 기존에는 `setState()`가 호출될 때마다 바로 `update()`를 실행했습니다.
 
-이번 확장에서는:
+이번 확장에서는 batching을 적용해:
 
 - 상태값은 즉시 반영하고
-- 렌더링은 `scheduleUpdate(component)`로 예약하고
-- 같은 턴 안의 여러 상태 변경은 한 번의 렌더링으로 묶도록 개선했습니다.
+- 렌더링은 `scheduleUpdate(component)`를 통해 예약하고
+- 같은 턴 안의 여러 상태 변경은 한 번의 렌더링으로 묶도록 구현했습니다
 
 즉:
 
 - 이전: 상태 변경마다 즉시 렌더링
-- 변경 후: 여러 변경을 모아서 한 번만 렌더링
+- 변경 후: 여러 상태 변경을 모아서 한 번만 렌더링
 
 ---
 
-## ✅ 배운 점
+## 5. 테스트 케이스
 
-- React의 핵심은 JSX 문법보다 상태와 렌더링 흐름 설계라는 점을 이해했습니다.
-- Hook은 함수 내부가 아니라 외부 저장 구조(`hooks[]`)를 통해 이전 값을 기억한다는 점을 직접 구현하며 배웠습니다.
-- Component 분리를 통해 상태 관리와 UI 조립 책임을 나누는 것이 중요하다는 점을 확인했습니다.
-- batching처럼 작은 최적화도 렌더링 구조와 깊게 연결된다는 점을 배웠습니다.
+테스트는 상황에 따라 아래처럼 나누어 설명할 수 있습니다.
+
+| 구분 | 설명 | 예시 |
+|------|------|------|
+| 단위 테스트 | 특정 함수나 내부 분기 검증 | `cloneVNode`, `escapeHtml`, `useMemo` 로직 |
+| 기능 테스트 | 사용자 동작 기준 전체 흐름 검증 | 버튼 클릭 후 렌더링, PATCH 반영 |
+| 엣지 케이스 | 경계 상황 검증 | 빈 입력, 빈 배열, 동일 deps, 범위 밖 인덱스 |
+
+핵심은 단순 결과만 보는 것이 아니라,  
+내부 분기와 흐름까지 확인하는 white-box 테스트 관점으로 접근했다는 점입니다.
 
 ---
 
-## 📌 한 줄 정리
+## 6. 한 줄 정리
 
 이 프로젝트는 Component, State, Hooks, FunctionComponent, batching 개념을 직접 구현하면서  
 React의 핵심 동작 원리를 이해하기 위한 mini React 프로젝트입니다.
