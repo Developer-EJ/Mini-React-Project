@@ -840,6 +840,36 @@ function restoreAppSnapshot(snapshot) {
 function getWhiteBoxTestSections() {
   return [
     {
+      title: 'component.js — 단위 테스트',
+      tests: [
+        test_component_renderComponent_현재컴포넌트등록및hookIndex초기화,
+        test_component_mount_초기VNode를실제DOM에렌더링,
+        test_component_update_같은루트에서텍스트만갱신
+      ]
+    },
+    {
+      title: 'hooks.js — 단위 테스트',
+      tests: [
+        test_hooks_useState_초기값과함수형업데이트,
+        test_hooks_useState_같은턴여러업데이트_batching1회,
+        test_hooks_useEffect_deps변경시에만재실행되고cleanup호출,
+        test_hooks_useMemo_deps같으면재계산하지않음,
+        test_hooks_edge_useEffect_deps없으면매렌더실행,
+        test_hooks_edge_batched상태변경후_effect는최신값으로1회실행,
+        test_hooks_edge_useMemo_deps없으면매렌더재계산,
+        test_hooks_edge_렌더밖에서호출하면예외
+      ]
+    },
+    {
+      title: 'feature — 기능 테스트',
+      tests: [
+        test_feature_handleCodingClick_성공시상태와UI반영,
+        test_feature_levelUp시_useEffect팝업표시,
+        test_feature_edge_골드부족시상태변화없음,
+        test_feature_edge_최대레벨에서exp가max를초과하지않음
+      ]
+    },
+    {
       title: 'vdom.js',
       tests: [
         test_domToVNode_텍스트노드_문자열반환,
@@ -947,7 +977,10 @@ async function onRunTestsClick() {
         totalCount++;
 
         try {
-          testFn();
+          const result = testFn();
+          if (result && typeof result.then === 'function') {
+            await result;
+          }
           passCount++;
           logs.push({ type: 'create', label: 'PASS', detail: testFn.name });
         } catch (error) {
