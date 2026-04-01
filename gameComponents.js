@@ -7,20 +7,72 @@
 
 // 이름 + 레벨 뱃지
 // props: { name, level, levelIcon, levelName }
+// 이름과 레벨 정보를 묶어서 헤더 영역 VNode로 반환
 function ProfileHeader(props) {
-  throw new Error('미구현: ProfileHeader');
+  return {
+    type: 'div',
+    props: {},
+    children: [
+      { type: 'h1', props: {}, children: [props.name] },
+      {
+        type: 'h2',
+        props: { class: 'level level-' + props.level },
+        children: [props.levelIcon + ' ' + props.levelName]
+      }
+    ]
+  };
 }
 
 // 경력 · 골드 · 취업 보상
 // props: { career, gold, hireReward }
+// 경력, 골드, 취업 보상 정보를 묶어서 반환
 function CareerInfo(props) {
-  throw new Error('미구현: CareerInfo');
+  return {
+    type: 'div',
+    props: {},
+    children: [
+      {
+        type: 'p',
+        props: { class: 'career' },
+        children: ['경력 ' + props.career + '년차']
+      },
+      {
+        type: 'p',
+        props: { class: 'gold' },
+        children: ['💰 ' + props.gold + ' G']
+      },
+      {
+        type: 'p',
+        props: { class: 'hire-info' },
+        children: ['퇴직 보상: ' + props.hireReward + ' G']
+      }
+    ]
+  };
 }
 
 // 경험치 progress bar
 // props: { exp, maxExp }
+// 현재 경험치와 최대 경험치를 progress와 텍스트로 반환
 function ExpBar(props) {
-  throw new Error('미구현: ExpBar');
+  return {
+    type: 'div',
+    props: { class: 'exp-bar' },
+    children: [
+      {
+        type: 'progress',
+        props: {
+          value: String(props.exp),
+          max: String(props.maxExp)
+        },
+        children: []
+      },
+      {
+        type: 'span',
+        props: {},
+        children: [props.exp + ' / ' + props.maxExp + ' EXP']
+      }
+    ]
+  };
 }
 
 // 기술 스택 목록
