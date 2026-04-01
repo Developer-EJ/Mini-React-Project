@@ -4,6 +4,22 @@
 
 ---
 
+## 팀원별 할 일
+
+### 고민석 — `component.js`
+`FunctionComponent` 클래스 구현. `mount()`는 최초 렌더링, `update()`는 diff+patch 실행. hooks.js가 쓸 `setCurrentComponent` / `getCurrentComponent` / `resetHookIndex` 함께 구현. 박승현과 인터페이스 먼저 합의.
+
+### 박승현 — `hooks.js`
+`useState` / `useEffect` / `useMemo` 구현. 고민석이 만든 `getCurrentComponent()`로 현재 컴포넌트의 `hooks[]` 배열에 상태 저장. 고민석과 인터페이스 합의 후 시작.
+
+### 강지현 — `gameComponents.js` + `game.js`
+`ProfileCard` 및 하위 컴포넌트(`ProfileHeader`, `ExpBar`, `SkillList` 등) 구현. 모두 props만 받는 순수 함수. `game.js`의 `generateProfileVNode()` 제거 후 `ProfileCard`로 교체. 김은재와 props 구조 사전 합의.
+
+### 김은재 — `app.js` + `index.html`
+루트 `App` 컴포넌트 작성. `useState`로 `gameState` 관리, 게임 버튼 클릭 시 `setState` 호출로 자동 리렌더링. `FunctionComponent`로 마운트. 스크립트 로드 순서 반영 및 PATCH 버튼 처리. 강지현과 props 구조 사전 합의.
+
+---
+
 ## 파일 소유권 (담당자 외 수정 금지)
 
 | 파일 | 담당자 | 권한 |
