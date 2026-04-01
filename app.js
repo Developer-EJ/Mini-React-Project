@@ -394,7 +394,7 @@ function updatePatchPanel(patches, domMutations) {
     area.removeChild(area.firstChild);
   }
 
-  if (!patches || patches.length === 0) {
+  if ((!patches || patches.length === 0) && (!domMutations || domMutations.length === 0)) {
     const empty = document.createElement('p');
     empty.className = 'panel-empty';
     empty.textContent = '버튼을 클릭하면\n변경 내역이 여기 표시됩니다';
@@ -416,9 +416,16 @@ function updatePatchPanel(patches, domMutations) {
   leftHeader.textContent = '⚙ DIFF 계획';
   leftCol.appendChild(leftHeader);
 
-  patches.forEach(function (p) {
-    leftCol.appendChild(buildPatchItem(p));
-  });
+  if (!patches || patches.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'panel-empty';
+    empty.textContent = '(diff 계획 없음)';
+    leftCol.appendChild(empty);
+  } else {
+    patches.forEach(function (p) {
+      leftCol.appendChild(buildPatchItem(p));
+    });
+  }
 
   // ── 오른쪽: 실제 DOM 감지 ──
   const rightCol = document.createElement('div');
@@ -537,6 +544,13 @@ function triggerGameAction(actionFn) {
   // 변경된 game.js 상태를 읽어 useState 갱신 → component.update() 자동 호출
   const newState = getGameState();
   resetPendingPatch();
+
+  // DOM 업데이트 전에 새 VNode를 미리 계산하여 diff 계획 수집
+  // (component.update()는 patches를 외부에 노출하지 않으므로 직접 계산)
+  restoreGameState(newState);
+  const newVNode = generateProfileVNode();
+  const displayPatches = diff(oldVNode, newVNode, realArea, realArea ? realArea.firstChild : null);
+
   _setGameState(newState);
 
   // component.update()는 동기적으로 완료되므로 여기서 DOM 변화 수집
@@ -547,7 +561,7 @@ function triggerGameAction(actionFn) {
   // 패널 갱신
   updateVDomPanel(appInstance.vNode, oldVNode);
   updateHooksPanel(appInstance.hooks);
-  updatePatchPanel([], mutations);
+  updatePatchPanel(displayPatches, mutations);
 }
 
 function handleCodingClick()   { triggerGameAction(onCodingClick); }
