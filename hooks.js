@@ -1,16 +1,15 @@
 // =============================================
 // 담당: 박승현 | hooks.js
 // 책임: useState, useEffect, useMemo 구현
-// 의존: component.js의 getCurrentComponent(), resetHookIndex()
+// 의존: component.js의 getCurrentComponent()
+// 전략:
+// 1) useState는 setter 호출 시 즉시 상태를 반영하고 update를 호출
+// 2) useEffect는 render 중 실행하지 않고 큐에만 저장
+// 3) patch 이후 flushEffects(component)에서 effect를 실행
 // =============================================
 
-// 핵심 질문:
-// "함수는 매번 새로 실행되는데, 상태는 어떻게 유지할까?"
-// → 각 컴포넌트 인스턴스의 hooks[] 배열에 저장하고
-//   hookIndex로 호출 순서를 추적하여 올바른 슬롯에 접근한다
-
 // 상태를 저장하고 변경할 수 있는 hook
-// initialValue: 최초 렌더링 시 사용할 초기값
+// initialValue: 최초 렌더링 시 사용할 초기값 또는 lazy initializer 함수
 // 반환: [현재값, setter함수]
 function useState(initialValue) {
   const hookContext = getHookContext();
@@ -21,7 +20,7 @@ function useState(initialValue) {
   if (!slot || slot.type !== 'state') {
     slot = {
       type: 'state',
-      value: initialValue
+      value: typeof initialValue === 'function' ? initialValue() : initialValue
     };
     component.hooks[hookIndex] = slot;
   }
@@ -48,6 +47,8 @@ function useState(initialValue) {
 // deps: 의존성 배열 — 이전 deps와 달라졌을 때만 callback 재실행
 //       deps가 빈 배열이면 mount 시 1회만 실행
 //       deps가 없으면 매 렌더링마다 실행
+// 주의: 여기서는 effect를 즉시 실행하지 않고 pendingEffects에 등록만 한다
+// 실제 실행은 patch 완료 후 flushEffects(component)가 담당한다
 function useEffect(callback, deps) {
   const hookContext = getHookContext();
   const component = hookContext.component;
@@ -60,42 +61,20 @@ function useEffect(callback, deps) {
       type: 'effect',
       deps: undefined,
       cleanup: null,
-      scheduleId: 0
+      nextCallback: null,
+      nextDeps: undefined,
+      isQueued: false
     };
     component.hooks[hookIndex] = slot;
   }
 
-  const shouldRun = isFirstRun || deps === undefined || !areDepsSame(slot.deps, deps);
-  slot.deps = cloneDeps(deps);
-
-  if (!shouldRun) {
+  if (!isFirstRun && deps !== undefined && areDepsSame(slot.deps, deps)) {
     return;
   }
 
-  slot.scheduleId += 1;
-  const currentScheduleId = slot.scheduleId;
-
-  setTimeout(function () {
-    if (slot.scheduleId !== currentScheduleId) {
-      return;
-    }
-
-    if (typeof slot.cleanup === 'function') {
-      try {
-        slot.cleanup();
-      } catch (error) {
-        console.error('useEffect cleanup 실행 중 오류', error);
-      }
-    }
-
-    try {
-      const cleanup = callback();
-      slot.cleanup = typeof cleanup === 'function' ? cleanup : null;
-    } catch (error) {
-      slot.cleanup = null;
-      console.error('useEffect 실행 중 오류', error);
-    }
-  }, 0);
+  slot.nextCallback = callback;
+  slot.nextDeps = cloneDeps(deps);
+  enqueueEffect(component, slot);
 }
 
 // 비싼 연산 결과를 캐싱하는 hook
@@ -158,6 +137,58 @@ function getHookContext() {
     component: component,
     hookIndex: hookIndex
   };
+}
+
+function enqueueEffect(component, slot) {
+  if (!Array.isArray(component.pendingEffects)) {
+    component.pendingEffects = [];
+  }
+
+  slot.isQueued = true;
+
+  if (!component.pendingEffects.includes(slot)) {
+    component.pendingEffects.push(slot);
+  }
+}
+
+function flushEffects(component) {
+  if (!component) {
+    return;
+  }
+
+  const pendingEffects = Array.isArray(component.pendingEffects)
+    ? component.pendingEffects.slice()
+    : [];
+
+  component.pendingEffects = [];
+
+  pendingEffects.forEach(function (slot) {
+    slot.isQueued = false;
+
+    if (typeof slot.nextCallback !== 'function') {
+      return;
+    }
+
+    if (typeof slot.cleanup === 'function') {
+      try {
+        slot.cleanup();
+      } catch (error) {
+        console.error('useEffect cleanup 실행 중 오류', error);
+      }
+    }
+
+    try {
+      const cleanup = slot.nextCallback();
+      slot.cleanup = typeof cleanup === 'function' ? cleanup : null;
+      slot.deps = slot.nextDeps;
+    } catch (error) {
+      slot.cleanup = null;
+      console.error('useEffect 실행 중 오류', error);
+    }
+
+    slot.nextCallback = null;
+    slot.nextDeps = undefined;
+  });
 }
 
 function areDepsSame(oldDeps, newDeps) {
