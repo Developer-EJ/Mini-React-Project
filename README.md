@@ -137,4 +137,14 @@ hooks.js
 | Hooks | `useState`, `useEffect`, `useMemo` 동작 검증 |
 | Batching | 여러 상태 변경의 단일 렌더링 처리 검증 |
 | Feature | 버튼 클릭, 레벨업 팝업, 상태-UI 연결 검증 |
-| Edge Case | Hook 예외, 골드 부족, 최대 레벨 처리 검증 |
+
+## ✅ 엣지 케이스
+
+| 구분 | 핵심 검증 항목 |
+|------|----------------|
+| Hook 호출 위치 | Hook을 렌더 바깥에서 호출하면 예외가 발생해야 함 |
+| Hook 순서 보장 | `hookIndex`가 매 렌더마다 같은 순서를 유지해야 함 |
+| Batching 렌더링 | 여러 `setState`가 같은 턴에 일어나도 한 번만 렌더링되어야 함 |
+| Batching 이후 Effect | batched 업데이트 후 `useEffect`는 최신 state 기준으로 1회만 실행되어야 함 |
+| Memo 캐싱 | `useMemo`는 deps가 같으면 재계산하지 않아야 함 |
+| 렌더링 일관성 | `mount()` 전후와 `update()` 시점에 `vNode`, 실제 DOM, Hook 상태가 일관되게 유지되어야 함 |
