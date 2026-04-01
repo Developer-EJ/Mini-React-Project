@@ -289,8 +289,12 @@
         radial-gradient(circle at 20% 30%, rgba(52,152,219,0.06) 0%, transparent 50%),
         radial-gradient(circle at 80% 70%, rgba(155,89,182,0.06) 0%, transparent 50%);
       display: flex;
-      justify-content: center;
-      align-items: center;
+      justify-content: flex-start;
+      align-items: flex-start;
+    }
+
+    #real-area .profile {
+      margin: 0 auto;
     }
 
     /* ── 하단 게임 액션 바 ── */
@@ -457,6 +461,112 @@
       pointer-events: none;
     }
 
+    .profile-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .profile-copy {
+      flex: 1 1 220px;
+      min-width: 0;
+    }
+
+    .profile-mascot {
+      width: 122px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+      text-align: center;
+    }
+
+    .profile-mascot-frame {
+      width: 122px;
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(233,69,96,0.22);
+      background:
+        radial-gradient(circle at top, rgba(255,255,255,0.14), transparent 48%),
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(6,10,26,0.4));
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.05),
+        0 10px 20px rgba(7, 11, 24, 0.28);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .profile-mascot-frame::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 12px 12px;
+      pointer-events: none;
+    }
+
+    .profile-mascot-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      z-index: 1;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(13, 17, 23, 0.72);
+      color: #f8fafc;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .profile-mascot-image {
+      width: 100%;
+      max-width: 98px;
+      height: auto;
+      display: block;
+      margin: 8px auto 0;
+      position: relative;
+      z-index: 1;
+      image-rendering: pixelated;
+      filter: drop-shadow(0 8px 10px rgba(10, 14, 28, 0.35));
+    }
+
+    .profile-mascot-name {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #ffd7df;
+    }
+
+    .profile-mascot-role {
+      font-size: 0.66rem;
+      color: #8ce7ff;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+
+    .profile-mascot-focus {
+      font-size: 0.6rem;
+      line-height: 1.45;
+      color: #aeb8c5;
+      max-width: 122px;
+    }
+
+    .profile-mascot-level-1 .profile-mascot-frame { border-color: rgba(88,214,125,0.35); }
+    .profile-mascot-level-2 .profile-mascot-frame { border-color: rgba(88,166,255,0.35); }
+    .profile-mascot-level-3 .profile-mascot-frame { border-color: rgba(255,159,67,0.35); }
+    .profile-mascot-level-4 .profile-mascot-frame { border-color: rgba(120,177,255,0.4); }
+    .profile-mascot-level-5 .profile-mascot-frame { border-color: rgba(255,213,79,0.45); }
+
     .profile h1 {
       font-size: 1.4rem;
       color: #fff;
@@ -483,6 +593,7 @@
     .profile .career    { color: #a0aec0; font-size: 0.82rem; margin-bottom: 4px; }
     .profile .gold      { color: #f1c40f; font-size: 1.05rem; font-weight: bold; margin-bottom: 3px; text-shadow: 0 0 6px rgba(241,196,15,0.3); }
     .profile .hire-info { color: #e67e22; font-size: 0.78rem; margin-bottom: 12px; }
+    .profile-top .hire-info { margin-bottom: 0; }
 
     .profile .exp-bar {
       margin-bottom: 12px;

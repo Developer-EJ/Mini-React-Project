@@ -5,6 +5,265 @@
 // 의존: game.js의 starsToString()
 // =============================================
 
+const LEVEL_PIXEL_ARTS = {
+  1: {
+    title: '첫 커밋',
+    role: 'HTML 새싹',
+    focus: '작은 div 한 줄도 직접 쌓는 중',
+    palette: {
+      A: '#63d68d',
+      B: '#4a3329',
+      C: '#ffe4c8',
+      D: '#ffafc5',
+      E: '#3fb7c6',
+      F: '#1b2438',
+      G: '#7fe6ff',
+      H: '#8cf26b',
+      I: '#7c5a43',
+      J: '#42556d',
+      K: '#2a3950',
+      M: '#b4c2cf'
+    },
+    rows: [
+      '........A.......',
+      '.......AAA......',
+      '....FFGGGGFF....',
+      '....FGHHHHGF....',
+      '......BB........',
+      '.....BCCB.......',
+      '.....BCDCB......',
+      '.....BEEEKK.....',
+      '....MKKKKKFF....',
+      '..IIIIIIIIIIII..',
+      '.....J....J.....',
+      '....JJ....JJ....',
+      '................'
+    ]
+  },
+  2: {
+    title: '기능 구현',
+    role: 'UI 빌더',
+    focus: '클릭마다 화면이 바뀌는 재미를 배우는 중',
+    palette: {
+      A: '#67b2ff',
+      B: '#4a352d',
+      C: '#ffe3c4',
+      D: '#ffafc8',
+      E: '#5b7dff',
+      F: '#1a2f4c',
+      G: '#7fe6ff',
+      H: '#8cf26b',
+      I: '#7b5a42',
+      J: '#455f7b',
+      K: '#273649',
+      M: '#b8c6d3'
+    },
+    rows: [
+      '.FFGGF..FFGGF...',
+      '.FGHHF..FGHHF...',
+      '.FFGGF..FFGGF...',
+      '......AA........',
+      '.....BBCCBB.....',
+      '.....BCDDCB.....',
+      '.....BEEEEB.....',
+      '....CKEEEKK.....',
+      '...MKKKKKFFF....',
+      '..IIIIIIIIIIII..',
+      '....J......J....',
+      '...JJ......JJ...',
+      '................'
+    ]
+  },
+  3: {
+    title: '디버깅 마스터',
+    role: '버그 헌터',
+    focus: '콘솔 로그와 예외를 추적하며 성장 중',
+    palette: {
+      A: '#ff9852',
+      B: '#4a2843',
+      C: '#ffe4c6',
+      D: '#ffafc8',
+      E: '#7358ff',
+      F: '#1e2338',
+      G: '#8ef3ff',
+      H: '#96ff7d',
+      I: '#7b5c45',
+      J: '#404866',
+      K: '#2a3146',
+      M: '#d7c36a'
+    },
+    rows: [
+      '..FFGGGGGGGGFF..',
+      '..FGHHHGGHHHGF..',
+      '..FFGGGGGGGGFF..',
+      '.....AAAAAA.....',
+      '....BBCCCCBB....',
+      '....BCDDDDCB....',
+      '....BEEEEEEB....',
+      '...CKEEEEEEKK...',
+      '..MKKKKKKKKFFM..',
+      '.IIIIIIIIIIIIII.',
+      '....J......J....',
+      '...JJ......JJ...',
+      '................'
+    ]
+  },
+  4: {
+    title: '시니어 멘토',
+    role: '리팩터 멘토',
+    focus: '구조를 다듬고 주니어를 이끄는 단계',
+    palette: {
+      A: '#7dd3fc',
+      B: '#3d2f2a',
+      C: '#ffe2c2',
+      D: '#ffafc7',
+      E: '#a6b4c4',
+      F: '#1c314c',
+      G: '#8ef2ff',
+      H: '#8cff7d',
+      I: '#7c5d45',
+      J: '#43546b',
+      K: '#2c394c',
+      M: '#d5dce6',
+      N: '#f4c542'
+    },
+    rows: [
+      '.FFGGG..FFGGG...',
+      '.FGHHG..FGHHG...',
+      '.FFGGGFFGGGFF...',
+      '....AANNNAA.....',
+      '....BBCCCCBB....',
+      '....BCDDDDCBM...',
+      '....BEEEEEEB....',
+      '...CKEEEEEEKK...',
+      '.MKKKKKKKKKKFFM.',
+      'IIIIIIIIIIIIIIII',
+      '....J......J....',
+      '...JJ......JJ...',
+      '................'
+    ]
+  },
+  5: {
+    title: '테크 리드',
+    role: '시스템 리드',
+    focus: '설계와 팀 성장을 동시에 관리하는 단계',
+    palette: {
+      A: '#ffd86b',
+      B: '#49342a',
+      C: '#ffe2c0',
+      D: '#ffb0c8',
+      E: '#d85e7d',
+      F: '#2a2438',
+      G: '#84f2ff',
+      H: '#97ff84',
+      I: '#7d5d45',
+      J: '#4a374f',
+      K: '#32243a',
+      M: '#dfe6f0'
+    },
+    rows: [
+      'FFGG..FFGG..FFGG',
+      'FGHH..FGHH..FGHH',
+      'FFGGGGGGGGGGGGFF',
+      '....A.AAA.A.....',
+      '....BBCCCCBB....',
+      '...BBCDDDDCBB...',
+      '...BEEEEEEEEB...',
+      '..CKEEEEEEEEKK..',
+      'MKKKKKKKKKKKFFFM',
+      'IIIIIIIIIIIIIIII',
+      '...JJ......JJ...',
+      '..JJJ......JJJ..',
+      '................'
+    ]
+  }
+};
+
+const pixelArtSrcCache = {};
+
+function buildLevelPixelArtSrc(level) {
+  const art = LEVEL_PIXEL_ARTS[level] || LEVEL_PIXEL_ARTS[1];
+  const pixelSize = 12;
+  const width = art.rows[0].length * pixelSize;
+  const height = art.rows.length * pixelSize;
+  const rects = [];
+
+  art.rows.forEach(function (row, y) {
+    row.split('').forEach(function (token, x) {
+      const color = art.palette[token];
+
+      if (!color) {
+        return;
+      }
+
+      rects.push(
+        '<rect x="' + (x * pixelSize) + '" y="' + (y * pixelSize) + '" width="' + pixelSize + '" height="' + pixelSize + '" fill="' + color + '"/>'
+      );
+    });
+  });
+
+  const svg =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + width + ' ' + height + '" shape-rendering="crispEdges">' +
+    rects.join('') +
+    '</svg>';
+
+  return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+}
+
+function getLevelPixelArtSrc(level) {
+  if (!pixelArtSrcCache[level]) {
+    pixelArtSrcCache[level] = buildLevelPixelArtSrc(level);
+  }
+
+  return pixelArtSrcCache[level];
+}
+
+function LevelPixelArt(props) {
+  const art = LEVEL_PIXEL_ARTS[props.level] || LEVEL_PIXEL_ARTS[1];
+
+  return {
+    type: 'div',
+    props: { class: 'profile-mascot profile-mascot-level-' + props.level },
+    children: [
+      {
+        type: 'div',
+        props: { class: 'profile-mascot-frame' },
+        children: [
+          {
+            type: 'span',
+            props: { class: 'profile-mascot-badge' },
+            children: ['STAGE ' + props.level]
+          },
+          {
+            type: 'img',
+            props: {
+              class: 'profile-mascot-image',
+              src: getLevelPixelArtSrc(props.level),
+              alt: props.levelName + ' 픽셀 아트'
+            },
+            children: []
+          }
+        ]
+      },
+      {
+        type: 'p',
+        props: { class: 'profile-mascot-name' },
+        children: [art.title]
+      },
+      {
+        type: 'p',
+        props: { class: 'profile-mascot-role' },
+        children: [art.role]
+      },
+      {
+        type: 'p',
+        props: { class: 'profile-mascot-focus' },
+        children: [art.focus]
+      }
+    ]
+  };
+}
+
 // 이름 + 레벨 뱃지
 // props: { name, level, levelIcon, levelName }
 // 이름과 레벨 정보를 묶어서 헤더 영역 VNode로 반환
@@ -185,17 +444,33 @@ function StrengthList(props) {
 // 프로필 카드 전체 구조를 하위 컴포넌트로 조립하여 반환
 function ProfileCard(props) {
   const children = [
-    ProfileHeader({
-      name: props.name,
-      level: props.level,
-      levelIcon: props.levelIcon,
-      levelName: props.levelName
-    }),
-    CareerInfo({
-      career: props.career,
-      gold: props.gold,
-      hireReward: props.hireReward
-    }),
+    {
+      type: 'div',
+      props: { class: 'profile-top' },
+      children: [
+        {
+          type: 'div',
+          props: { class: 'profile-copy' },
+          children: [
+            ProfileHeader({
+              name: props.name,
+              level: props.level,
+              levelIcon: props.levelIcon,
+              levelName: props.levelName
+            }),
+            CareerInfo({
+              career: props.career,
+              gold: props.gold,
+              hireReward: props.hireReward
+            })
+          ]
+        },
+        LevelPixelArt({
+          level: props.level,
+          levelName: props.levelName
+        })
+      ]
+    },
     ExpBar({
       exp: props.exp,
       maxExp: props.maxExp
