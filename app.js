@@ -560,8 +560,12 @@ function triggerGameAction(actionFn) {
   }
 
   const oldVNode = cloneVNode(appInstance.vNode);
-  // 렌더링 전 hooks 스냅샷 — deps 변화 비교용
-  const oldHooks = appInstance.hooks.map(function(h) { return Object.assign({}, h); });
+  // 렌더링 전 hooks 스냅샷 — deps 변화 비교용 (deps 배열은 깊은 복사)
+  const oldHooks = appInstance.hooks.map(function(h) {
+    const copy = Object.assign({}, h);
+    copy.deps = Array.isArray(h.deps) ? h.deps.slice() : h.deps;
+    return copy;
+  });
 
   // game.js 액션 실행 → 내부 gameState 변경
   actionFn();
@@ -571,10 +575,13 @@ function triggerGameAction(actionFn) {
 
   _setGameState(newState);
 
-  // 패널 갱신
-  updateVDomPanel(appInstance.vNode, oldVNode);
-  updateHooksPanel(appInstance.hooks, oldHooks);
-  updateDepsPanel(appInstance.hooks, oldHooks);
+  // component.update()는 queueMicrotask로 예약되므로
+  // 패널 갱신도 마이크로태스크 이후에 실행해야 최신 hooks 상태를 읽을 수 있다
+  queueMicrotask(function() {
+    updateVDomPanel(appInstance.vNode, oldVNode);
+    updateHooksPanel(appInstance.hooks, oldHooks);
+    updateDepsPanel(appInstance.hooks, oldHooks);
+  });
 }
 
 function handleCodingClick()   { triggerGameAction(onCodingClick); }
@@ -668,7 +675,8 @@ function updateHooksPanel(hooks, oldHooks) {
       const depsChanged = oldHook && oldDeps !== newDeps;
       const depsText = depsChanged ? oldDeps + ' → ' + newDeps : newDeps;
       appendHookField(body, 'deps', depsText);
-      if (depsChanged) {
+      // hooks[2] (레벨업 useEffect) 가 실행될 때만 하이라이트
+      if (i === 2 && depsChanged) {
         card.classList.add('changed');
       }
       appendHookField(body, 'cleanup', hook.cleanup ? '함수' : 'null');
@@ -687,9 +695,6 @@ function updateHooksPanel(hooks, oldHooks) {
         appendHookField(body, 'value', JSON.stringify(hook.value));
       }
       appendHookField(body, 'deps', depsText);
-      if (depsChanged) {
-        card.classList.add('changed');
-      }
     }
 
     card.appendChild(body);
@@ -733,8 +738,10 @@ function updateDepsPanel(hooks, oldHooks) {
 
     const typeLabel = hook.type === 'effect' ? 'useEffect' : 'useMemo';
 
+    // hooks[2] (레벨업 useEffect) 가 실행될 때만 하이라이트
+    const isLevelUpEffect = i === 2 && hook.type === 'effect';
     const card = document.createElement('div');
-    card.className = 'deps-card' + (depsChanged ? ' deps-card-changed' : ' deps-card-same');
+    card.className = 'deps-card' + (isLevelUpEffect && depsChanged ? ' deps-card-changed' : ' deps-card-same');
 
     // 헤더
     const header = document.createElement('div');
@@ -753,7 +760,7 @@ function updateDepsPanel(hooks, oldHooks) {
     const statusSpan = document.createElement('span');
     statusSpan.className = 'deps-status ' + (depsChanged ? 'deps-status-run' : 'deps-status-skip');
     statusSpan.textContent = depsChanged
-      ? (hook.type === 'effect' ? '실행' : '재계산')
+      ? (isLevelUpEffect ? '🎉 레벨업 팝업 발생' : '재계산')
       : '스킵';
     header.appendChild(statusSpan);
 
