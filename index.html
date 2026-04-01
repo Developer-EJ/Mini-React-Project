@@ -17,7 +17,7 @@
       overflow: hidden;
     }
 
-    /* ── 상단 컨트롤 바 ── */
+    /* ── 상단 타이틀 바 ── */
     .top-bar {
       display: flex;
       align-items: center;
@@ -33,58 +33,6 @@
       font-weight: bold;
       color: #3fb950;
       letter-spacing: 0.08em;
-      margin-right: 8px;
-      white-space: nowrap;
-    }
-
-    .top-bar button {
-      padding: 5px 14px;
-      border: 1px solid #30363d;
-      border-radius: 4px;
-      background: #21262d;
-      color: #e6edf3;
-      cursor: pointer;
-      font-family: inherit;
-      font-size: 0.82rem;
-    }
-
-    .top-bar button:hover:not(:disabled) { background: #30363d; }
-
-    .top-bar button:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-    }
-
-    #btn-patch {
-      background: #238636;
-      border-color: #2ea043;
-      color: #fff;
-      font-weight: bold;
-      padding: 5px 18px;
-    }
-
-    #btn-patch:hover { background: #2ea043; }
-
-    .history-dots {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      margin-left: 8px;
-    }
-
-    .history-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #30363d;
-      transition: background 0.15s;
-    }
-
-    .history-dot.active { background: #3fb950; }
-
-    .history-status {
-      color: #8b949e;
-      font-size: 0.78rem;
       white-space: nowrap;
     }
 
@@ -109,18 +57,20 @@
       min-width: 0;
     }
 
-    /* VDOM + PATCH를 세로로 쌓는 컬럼 */
+    /* 콘텐츠 너비에 상관없이 3열 균등 분배 */
+    .panels > .panel,
+    .panels > .panel-column { flex: 1 1 0; }
+
+    /* HOOKS + PATCH를 세로로 쌓는 컬럼 */
     .panel-column {
-      flex: 1;
       display: flex;
       flex-direction: column;
       gap: 8px;
       min-width: 0;
+      overflow: hidden;
     }
 
-    /* VDOM이 더 길게, PATCH는 그 절반 */
-    .panel-column .panel:first-child { flex: 2; }
-    .panel-column .panel:last-child  { flex: 1; }
+    .panel-column .panel { flex: 1; }
 
     .panel-header {
       display: flex;
@@ -157,24 +107,7 @@
       padding: 12px;
     }
 
-    /* ── 1. 테스트 영역 ── */
-    #test-area {
-      width: 100%;
-      height: 100%;
-      border: none;
-      resize: none;
-      font-family: 'Courier New', Consolas, monospace;
-      font-size: 0.82rem;
-      line-height: 1.7;
-      background: transparent;
-      color: #e6edf3;
-      outline: none;
-      padding: 12px;
-    }
-
-    #test-area::placeholder { color: #3d444d; }
-
-    /* ── 2. VDOM 트리 ── */
+    /* ── VDOM 트리 ── */
     #vdom-area {
       font-family: 'Courier New', Consolas, monospace;
       font-size: 0.8rem;
@@ -188,7 +121,6 @@
     .vdom-punct     { color: #8b949e; }
     .vdom-text-line { color: #ffa657; white-space: nowrap; }
 
-    /* VDOM 변경 하이라이트 */
     .vdom-line-changed {
       background: rgba(210, 153, 34, 0.18);
       border-left: 3px solid #d29922;
@@ -202,13 +134,77 @@
       margin-left: -9px;
     }
 
-    /* ── 3. Patch 내역 ── */
+    /* ── Hooks 상태 패널 ── */
+    #hooks-area {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .hook-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .hook-card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      background: #21262d;
+      font-size: 0.72rem;
+      font-weight: bold;
+    }
+
+    .hook-index {
+      color: #8b949e;
+    }
+
+    .hook-type {
+      padding: 1px 8px;
+      border-radius: 10px;
+      font-size: 0.68rem;
+      letter-spacing: 0.05em;
+    }
+
+    .hook-type-useState  { background: rgba(88,166,255,0.15);  color: #58a6ff; border: 1px solid rgba(88,166,255,0.3); }
+    .hook-type-useEffect { background: rgba(63,185,80,0.15);   color: #3fb950; border: 1px solid rgba(63,185,80,0.3); }
+    .hook-type-useMemo   { background: rgba(188,140,255,0.15); color: #bc8cff; border: 1px solid rgba(188,140,255,0.3); }
+
+    .hook-card-body {
+      padding: 8px 10px;
+      font-size: 0.78rem;
+    }
+
+    .hook-field {
+      display: flex;
+      gap: 8px;
+      padding: 2px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .hook-field:last-child { border-bottom: none; }
+
+    .hook-field-key   { color: #79c0ff; min-width: 80px; flex-shrink: 0; }
+    .hook-field-value { color: #ffa657; word-break: break-all; }
+
+    /* 상태 변경 시 하이라이트 */
+    .hook-card.changed {
+      border-color: #d29922;
+    }
+
+    .hook-card.changed .hook-card-header {
+      background: rgba(210, 153, 34, 0.15);
+    }
+
+    /* ── Patch 내역 ── */
     #patch-area {
       font-size: 0.8rem;
       height: 100%;
     }
 
-    /* DIFF계획 vs 실제감지 두 컬럼 */
     .patch-columns {
       display: flex;
       gap: 8px;
@@ -234,17 +230,8 @@
       flex-shrink: 0;
     }
 
-    .patch-col-header-plan {
-      background: rgba(88, 166, 255, 0.1);
-      color: #58a6ff;
-      border: 1px solid rgba(88, 166, 255, 0.25);
-    }
-
-    .patch-col-header-real {
-      background: rgba(63, 185, 80, 0.1);
-      color: #3fb950;
-      border: 1px solid rgba(63, 185, 80, 0.25);
-    }
+    .patch-col-header-plan { background: rgba(88,166,255,0.1);  color: #58a6ff; border: 1px solid rgba(88,166,255,0.25); }
+    .patch-col-header-real { background: rgba(63,185,80,0.1);   color: #3fb950; border: 1px solid rgba(63,185,80,0.25); }
 
     .panel-empty {
       color: #3d444d;
@@ -292,7 +279,7 @@
     .patch-type-text    .patch-badge { background: rgba(88,166,255,0.15); color: #58a6ff; }
     .patch-type-props   .patch-badge { background: rgba(188,140,255,0.15);color: #bc8cff; }
 
-    /* ── 4. 실제 DOM 결과 영역 ── */
+    /* ── 실제 DOM 결과 영역 ── */
     #real-area {
       flex: 1;
       overflow: auto;
@@ -338,7 +325,12 @@
     .btn-study    { background: #6e40c9; border-color: #8957e5; }
     .btn-overtime { background: #9a3412; border-color: #d29922; }
     .btn-hire     { background: linear-gradient(135deg, #7d4e00, #d29922); border-color: #f0b429; color: #fffbe6; }
-    .btn-test     { background: #0f766e; border-color: #14b8a6; }
+    .btn-test     { background: #0f766e; border-color: #14b8a6; margin-left: auto; }
+
+    .game-bar button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
 
     /* ── 프로필 카드 (real-area 내부) ── */
     .profile {
@@ -447,36 +439,35 @@
 </head>
 <body>
 
-  <!-- 상단 컨트롤 바 -->
+  <!-- 상단 타이틀 바 -->
   <div class="top-bar">
     <span class="title">▌개발자 키우기</span>
-    <button id="btn-patch" onclick="onPatchClick()">▶ PATCH</button>
-    <button id="btn-back" onclick="onBackClick()">◀ 뒤로</button>
-    <button id="btn-forward" onclick="onForwardClick()">앞으로 ▶</button>
-    <div class="history-dots" id="history-dots"></div>
-    <span class="history-status" id="history-status">히스토리 없음</span>
   </div>
 
   <!-- 4단 패널 -->
   <div class="panels">
 
-    <!-- 1. 테스트 영역 -->
-    <div class="panel">
+    <!-- 1. VDOM 트리 -->
+    <div class="panel panel-vdom">
       <div class="panel-header">
-        <span class="panel-icon">✏</span>TEST AREA
+        <span class="panel-icon">◈</span>VDOM
       </div>
-      <textarea id="test-area" placeholder="여기에 HTML을 직접 입력하세요..."></textarea>
+      <div class="panel-body">
+        <div id="vdom-area"></div>
+      </div>
     </div>
 
-    <!-- 2. VDOM + PATCH (같은 열, 세로 분할) -->
+    <!-- 2. Hooks + Patch (같은 열, 세로 분할) -->
     <div class="panel-column">
 
       <div class="panel">
         <div class="panel-header">
-          <span class="panel-icon">◈</span>VDOM
+          <span class="panel-icon">⚓</span>HOOKS
         </div>
         <div class="panel-body">
-          <div id="vdom-area"></div>
+          <div id="hooks-area">
+            <p class="panel-empty">버튼을 클릭하면<br>hooks 상태가 여기 표시됩니다</p>
+          </div>
         </div>
       </div>
 
@@ -504,18 +495,21 @@
 
   <!-- 하단 게임 액션 바 -->
   <div class="game-bar">
-    <button class="btn-coding"   onclick="onCodingClick()">💻 코딩하기 +20 | 10G (90%)</button>
-    <button class="btn-project"  onclick="onProjectClick()">📁 사이드 프로젝트 +30 | 20G (70%)</button>
-    <button class="btn-study"    onclick="onStudyClick()">📖 CS 공부 +25 | 15G (80%)</button>
-    <button class="btn-overtime" onclick="onOvertimeClick()">🔥 야근 +50 | 30G (40%)</button>
-    <button class="btn-hire"     onclick="onHireClick()">💼 퇴사하기</button>
+    <button class="btn-coding"   onclick="handleCodingClick()">💻 코딩하기 +20 | 10G (90%)</button>
+    <button class="btn-project"  onclick="handleProjectClick()">📁 사이드 프로젝트 +30 | 20G (70%)</button>
+    <button class="btn-study"    onclick="handleStudyClick()">📖 CS 공부 +25 | 15G (80%)</button>
+    <button class="btn-overtime" onclick="handleOvertimeClick()">🔥 야근 +50 | 30G (40%)</button>
+    <button class="btn-hire"     onclick="handleHireClick()">💼 퇴사하기</button>
     <button class="btn-test" id="btn-run-tests" onclick="onRunTestsClick()">🧪 테스트하기</button>
   </div>
 
-  <!-- 스크립트 로드 순서: vdom.js → diff.js → game.js → app.js → 테스트 -->
+  <!-- 스크립트 로드 순서 -->
   <script src="vdom.js"></script>
   <script src="diff.js"></script>
   <script src="game.js"></script>
+  <script src="component.js"></script>
+  <script src="hooks.js"></script>
+  <script src="gameComponents.js"></script>
   <script src="app.js"></script>
   <script src="vdom.test.js"></script>
   <script src="app.test.js"></script>
