@@ -1,11 +1,10 @@
 // =============================================
-// 담당: 은재 | game.js
-// 책임: 게임 상태 관리 + 프로필 HTML 생성
-// AI 규약 버전: v1.0
+// 담당: 강지현 | game.js
+// 책임: 게임 상태 관리 + 프로필 VNode 생성
+// 규칙: 화면 생성은 공유 VNode 구조를 따르며 gameComponents.js와 연동
+// 의존: app.js의 getHtmlStringFromVNode()
 // =============================================
 
-// 성장 단계 정의
-// hireReward: 취업하기 시 받는 골드
 const LEVELS = [
   {
     level: 1,
@@ -138,64 +137,22 @@ function getCurrentLevel() {
 // 게임 상태 기반 프로필 VNode 생성
 function generateProfileVNode() {
   const lvl = getCurrentLevel();
-  const exp = gameState.exp;
 
-  // 기술 스택 li VNode 목록
-  const skillItems = lvl.skills.map((skill) => ({
-    type: 'li',
-    props: {},
-    children: [skill.name + ' ' + starsToString(skill.stars)]
-  }));
-
-  const children = [
-    { type: 'h1', props: {}, children: ['김은재'] },
-    { type: 'h2', props: { class: 'level level-' + lvl.level }, children: [lvl.levelIcon + ' ' + lvl.levelName] },
-    { type: 'p', props: { class: 'career' }, children: ['경력 ' + lvl.career + '년차'] },
-    { type: 'p', props: { class: 'gold' }, children: ['💰 ' + gameState.gold + ' G'] },
-    { type: 'p', props: { class: 'hire-info' }, children: ['퇴직 보상: ' + lvl.hireReward + ' G'] },
-    {
-      type: 'div',
-      props: { class: 'exp-bar' },
-      children: [
-        { type: 'progress', props: { value: String(exp), max: String(lvl.maxExp) }, children: [] },
-        { type: 'span', props: {}, children: [exp + ' / ' + lvl.maxExp + ' EXP'] }
-      ]
-    },
-    { type: 'h3', props: {}, children: ['기술 스택'] },
-    { type: 'ul', props: { class: 'skills' }, children: skillItems }
-  ];
-
-  // 프로젝트
-  if (lvl.projects.length > 0) {
-    children.push({ type: 'h3', props: {}, children: ['완성한 프로젝트'] });
-    children.push({
-      type: 'ul',
-      props: { class: 'projects' },
-      children: lvl.projects.map((proj) => ({ type: 'li', props: {}, children: [proj] }))
-    });
-  }
-
-  // 약점
-  if (lvl.weaknesses.length > 0) {
-    children.push({ type: 'h3', props: {}, children: ['약점'] });
-    children.push({
-      type: 'ul',
-      props: { class: 'weaknesses' },
-      children: lvl.weaknesses.map((w) => ({ type: 'li', props: { class: 'bad' }, children: [w] }))
-    });
-  }
-
-  // 강점
-  if (lvl.strengths.length > 0) {
-    children.push({ type: 'h3', props: {}, children: ['강점'] });
-    children.push({
-      type: 'ul',
-      props: { class: 'strengths' },
-      children: lvl.strengths.map((s) => ({ type: 'li', props: { class: 'good' }, children: [s] }))
-    });
-  }
-
-  return { type: 'div', props: { class: 'profile' }, children: children };
+  return ProfileCard({
+    name: '김은재',
+    level: lvl.level,
+    levelName: lvl.levelName,
+    levelIcon: lvl.levelIcon,
+    career: lvl.career,
+    gold: gameState.gold,
+    hireReward: lvl.hireReward,
+    exp: gameState.exp,
+    maxExp: lvl.maxExp,
+    skills: lvl.skills,
+    projects: lvl.projects,
+    weaknesses: lvl.weaknesses,
+    strengths: lvl.strengths
+  });
 }
 
 // 경험치 추가 + 레벨업 체크
