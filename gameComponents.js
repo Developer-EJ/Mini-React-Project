@@ -9,6 +9,7 @@
 // props: { name, level, levelIcon, levelName }
 // 이름과 레벨 정보를 묶어서 헤더 영역 VNode로 반환
 function ProfileHeader(props) {
+  // h1과 h2를 하나의 VNode로 반환하기 위해 div로 묶음
   return {
     type: 'div',
     props: {},
@@ -27,6 +28,7 @@ function ProfileHeader(props) {
 // props: { career, gold, hireReward }
 // 경력, 골드, 취업 보상 정보를 묶어서 반환
 function CareerInfo(props) {
+  // p 요소 3개를 하나의 VNode로 반환하기 위해 div로 묶음
   return {
     type: 'div',
     props: {},
@@ -211,6 +213,7 @@ function ProfileCard(props) {
     StrengthList({
       strengths: props.strengths
     })
+    // ProjectList, WeaknessList, StrengthList가 null을 반환할 수 있으므로 children에서 제거
   ].filter((child) => child !== null);
 
   return {

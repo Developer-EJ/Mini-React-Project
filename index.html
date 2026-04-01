@@ -332,6 +332,109 @@
       cursor: not-allowed;
     }
 
+    /* ── DEPS 패널 ── */
+    .deps-card {
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .deps-card-changed { border-color: #d29922; }
+    .deps-card-same    { border-color: #30363d; }
+
+    .deps-card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      background: #21262d;
+      font-size: 0.72rem;
+      font-weight: bold;
+    }
+
+    .deps-card-changed .deps-card-header { background: rgba(210,153,34,0.15); }
+
+    .deps-status {
+      margin-left: auto;
+      font-size: 0.65rem;
+      font-weight: bold;
+      padding: 1px 8px;
+      border-radius: 10px;
+      letter-spacing: 0.05em;
+    }
+
+    .deps-status-run  { background: rgba(63,185,80,0.15);  color: #3fb950; border: 1px solid rgba(63,185,80,0.3); }
+    .deps-status-skip { background: rgba(139,148,158,0.15); color: #8b949e; border: 1px solid rgba(139,148,158,0.3); }
+
+    .deps-card-body {
+      padding: 8px 10px;
+      font-size: 0.78rem;
+      font-family: 'Courier New', Consolas, monospace;
+    }
+
+    .deps-row {
+      padding: 2px 4px;
+      color: #8b949e;
+      border-radius: 3px;
+    }
+
+    .deps-row-changed {
+      color: #ffa657;
+      background: rgba(210,153,34,0.1);
+    }
+
+    /* useMemo value VNode 트리 */
+    .hook-vnode-tree {
+      font-size: 0.72rem;
+      max-height: 120px;
+      overflow-y: auto;
+      border: 1px solid #30363d;
+      border-radius: 4px;
+      padding: 4px 6px;
+      margin-bottom: 4px;
+      background: rgba(0,0,0,0.2);
+    }
+
+    /* ── 레벨업 팝업 ── */
+    .levelup-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+      border: 2px solid #f1c40f;
+      border-radius: 12px;
+      padding: 28px 48px;
+      text-align: center;
+      z-index: 1000;
+      box-shadow: 0 0 40px rgba(241, 196, 15, 0.4);
+      animation: levelup-show 2.5s ease forwards;
+    }
+
+    .levelup-hidden { display: none; }
+
+    .levelup-icon { font-size: 3rem; margin-bottom: 8px; }
+
+    .levelup-title {
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: #f1c40f;
+      letter-spacing: 0.2em;
+      text-shadow: 0 0 12px rgba(241, 196, 15, 0.6);
+      margin-bottom: 6px;
+    }
+
+    .levelup-name { font-size: 1rem; color: #e6edf3; letter-spacing: 0.05em; }
+
+    @keyframes levelup-show {
+      0%   { opacity: 0; transform: translate(-50%, -60%) scale(0.8); }
+      15%  { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+      25%  { transform: translate(-50%, -50%) scale(1); }
+      75%  { opacity: 1; }
+      100% { opacity: 0; transform: translate(-50%, -40%) scale(0.95); }
+    }
+
     /* ── 프로필 카드 (real-area 내부) ── */
     .profile {
       font-family: 'Segoe UI', sans-serif;
@@ -473,7 +576,7 @@
 
       <div class="panel">
         <div class="panel-header">
-          <span class="panel-icon">⚡</span>PATCH
+          <span class="panel-icon">⚡</span>DEPS
         </div>
         <div class="panel-body">
           <div id="patch-area"></div>
@@ -501,6 +604,13 @@
     <button class="btn-overtime" onclick="handleOvertimeClick()">🔥 야근 +50 | 30G (40%)</button>
     <button class="btn-hire"     onclick="handleHireClick()">💼 퇴사하기</button>
     <button class="btn-test" id="btn-run-tests" onclick="onRunTestsClick()">🧪 테스트하기</button>
+  </div>
+
+  <!-- 레벨업 팝업 -->
+  <div id="levelup-popup" class="levelup-popup levelup-hidden">
+    <div class="levelup-icon" id="levelup-icon"></div>
+    <div class="levelup-title">LEVEL UP!</div>
+    <div class="levelup-name" id="levelup-name"></div>
   </div>
 
   <!-- 스크립트 로드 순서 -->
