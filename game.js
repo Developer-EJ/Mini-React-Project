@@ -135,6 +135,7 @@ function getCurrentLevel() {
 }
 
 // 게임 상태 기반 프로필 VNode 생성
+// 현재 게임 상태와 레벨 정보를 ProfileCard props 형태로 변환하여 반환
 function generateProfileVNode() {
   const lvl = getCurrentLevel();
 
