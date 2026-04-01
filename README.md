@@ -74,7 +74,7 @@ ProfileCard
 함수형 컴포넌트는 화면을 만드는 역할만 수행.
 그 함수를 실행하고 관리하는 주체를 클래스로 분리.
 
-#### FunctionComponent의 역할
+### FunctionComponent의 역할
 
 - `FunctionComponent` 클래스가 컴포넌트 함수 `fn`을 받아 실행
 - 인스턴스가 `hooks[]`, `hookIndex`, `vNode`, `container`를 보관
@@ -96,8 +96,6 @@ component.js
 hooks.js
  └── useState / useEffect / useMemo 구현
 ```
-
-
 
 ## 🚀 쟁점 포인트
 
