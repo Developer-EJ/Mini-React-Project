@@ -498,6 +498,30 @@ function updatePatchLogPanel(logs) {
 // App 루트 컴포넌트
 // =============================================
 
+// 레벨업 팝업을 잠깐 표시한다
+// levelName: 새 레벨 이름, levelIcon: 레벨 아이콘 이모지
+function showLevelUpPopup(levelName, levelIcon) {
+  const popup = document.getElementById('levelup-popup');
+
+  if (!popup) {
+    return;
+  }
+
+  document.getElementById('levelup-icon').textContent = levelIcon;
+  document.getElementById('levelup-name').textContent = levelName;
+
+  // 이전 타이머가 있으면 취소 후 애니메이션 재시작
+  clearTimeout(popup._hideTimer);
+  popup.classList.remove('levelup-hidden');
+  popup.style.animation = 'none';
+  void popup.offsetWidth; // 강제 reflow — 애니메이션 재시작을 위해 필요
+  popup.style.animation = '';
+
+  popup._hideTimer = setTimeout(function() {
+    popup.classList.add('levelup-hidden');
+  }, 2500);
+}
+
 // useState로 게임 상태 관리 — hooks 배열 시각화의 핵심
 function App() {
   const [gs, setGs] = useState(getGameState());
@@ -507,7 +531,22 @@ function App() {
   // game.js 내부 상태를 hooks 상태와 동기화
   restoreGameState(gs);
 
-  return generateProfileVNode();
+  // VNode 트리 — gs 세 값이 바뀌지 않으면 generateProfileVNode() 재호출 스킵
+  const profileVNode = useMemo(function() {
+    return generateProfileVNode();
+  }, [gs.levelIdx, gs.exp, gs.gold]);
+
+  // levelIdx가 바뀔 때만 실행 — 레벨업 감지
+  useEffect(function() {
+    // 초기 마운트(레벨 1)에서는 팝업을 표시하지 않는다
+    if (gs.levelIdx === 0) {
+      return;
+    }
+    const lvl = getCurrentLevel();
+    showLevelUpPopup(lvl.levelName, lvl.levelIcon);
+  }, [gs.levelIdx]);
+
+  return profileVNode;
 }
 
 // =============================================
@@ -515,53 +554,27 @@ function App() {
 // =============================================
 
 // game.js 액션 실행 → useState 갱신 → component.update() 자동 호출
-// MutationObserver로 실제 DOM 변화도 캡처하여 PATCH 패널에 표시
 function triggerGameAction(actionFn) {
   if (!_setGameState || !appInstance) {
     return;
   }
 
   const oldVNode = cloneVNode(appInstance.vNode);
-  const mutations = [];
-  const realArea = document.getElementById('real-area');
-
-  const observer = new MutationObserver(function (records) {
-    mutations.push.apply(mutations, records);
-  });
-
-  if (realArea) {
-    observer.observe(realArea, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      characterData: true
-    });
-  }
+  // 렌더링 전 hooks 스냅샷 — deps 변화 비교용
+  const oldHooks = appInstance.hooks.map(function(h) { return Object.assign({}, h); });
 
   // game.js 액션 실행 → 내부 gameState 변경
   actionFn();
 
-  // 변경된 game.js 상태를 읽어 useState 갱신 → component.update() 자동 호출
   const newState = getGameState();
   resetPendingPatch();
 
-  // DOM 업데이트 전에 새 VNode를 미리 계산하여 diff 계획 수집
-  // (component.update()는 patches를 외부에 노출하지 않으므로 직접 계산)
-  restoreGameState(newState);
-  const newVNode = generateProfileVNode();
-  const displayPatches = diff(oldVNode, newVNode, realArea, realArea ? realArea.firstChild : null);
-
   _setGameState(newState);
-
-  // component.update()는 동기적으로 완료되므로 여기서 DOM 변화 수집
-  const pending = observer.takeRecords();
-  observer.disconnect();
-  mutations.push.apply(mutations, pending);
 
   // 패널 갱신
   updateVDomPanel(appInstance.vNode, oldVNode);
-  updateHooksPanel(appInstance.hooks);
-  updatePatchPanel(displayPatches, mutations);
+  updateHooksPanel(appInstance.hooks, oldHooks);
+  updateDepsPanel(appInstance.hooks, oldHooks);
 }
 
 function handleCodingClick()   { triggerGameAction(onCodingClick); }
@@ -593,7 +606,8 @@ function appendHookField(parent, key, value) {
 }
 
 // HOOKS 패널 갱신 — hooks[] 배열을 카드 형식으로 시각화
-function updateHooksPanel(hooks) {
+// oldHooks: 렌더링 전 스냅샷 — 전달 시 deps 변화를 이전값 → 현재값 형식으로 표시
+function updateHooksPanel(hooks, oldHooks) {
   const area = document.getElementById('hooks-area');
 
   if (!area) {
@@ -644,19 +658,148 @@ function updateHooksPanel(hooks) {
     const body = document.createElement('div');
     body.className = 'hook-card-body';
 
+    const oldHook = oldHooks && oldHooks[i];
+
     if (hook.type === 'state') {
       appendHookField(body, 'value', JSON.stringify(hook.value, null, 2));
     } else if (hook.type === 'effect') {
-      appendHookField(body, 'deps', JSON.stringify(hook.deps));
+      const oldDeps = oldHook ? JSON.stringify(oldHook.deps) : null;
+      const newDeps = JSON.stringify(hook.deps);
+      const depsChanged = oldHook && oldDeps !== newDeps;
+      const depsText = depsChanged ? oldDeps + ' → ' + newDeps : newDeps;
+      appendHookField(body, 'deps', depsText);
+      if (depsChanged) {
+        card.classList.add('changed');
+      }
       appendHookField(body, 'cleanup', hook.cleanup ? '함수' : 'null');
     } else if (hook.type === 'memo') {
-      appendHookField(body, 'value', JSON.stringify(hook.value));
-      appendHookField(body, 'deps', JSON.stringify(hook.deps));
+      const oldDeps = oldHook ? JSON.stringify(oldHook.deps) : null;
+      const newDeps = JSON.stringify(hook.deps);
+      const depsChanged = oldHook && oldDeps !== newDeps;
+      const depsText = depsChanged ? oldDeps + ' → ' + newDeps : newDeps;
+      // value가 VNode 객체면 트리 형식으로, 아니면 JSON으로 표시
+      if (hook.value && typeof hook.value === 'object' && hook.value.type) {
+        const treeWrap = document.createElement('div');
+        treeWrap.className = 'hook-vnode-tree';
+        treeWrap.appendChild(buildVDomTree(hook.value, 0, null));
+        body.appendChild(treeWrap);
+      } else {
+        appendHookField(body, 'value', JSON.stringify(hook.value));
+      }
+      appendHookField(body, 'deps', depsText);
+      if (depsChanged) {
+        card.classList.add('changed');
+      }
     }
 
     card.appendChild(body);
     area.appendChild(card);
   });
+}
+
+// DEPS 패널 갱신 — useEffect/useMemo의 deps 변화를 카드 형식으로 표시
+// hooks: 렌더링 후 hooks, oldHooks: 렌더링 전 스냅샷
+function updateDepsPanel(hooks, oldHooks) {
+  const area = document.getElementById('patch-area');
+
+  if (!area) {
+    return;
+  }
+
+  while (area.firstChild) {
+    area.removeChild(area.firstChild);
+  }
+
+  if (!hooks || hooks.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'panel-empty';
+    empty.textContent = '(deps 없음)';
+    area.appendChild(empty);
+    return;
+  }
+
+  let hasAny = false;
+
+  hooks.forEach(function(hook, i) {
+    if (!hook || hook.type === 'state') {
+      return;
+    }
+
+    hasAny = true;
+    const oldHook = oldHooks && oldHooks[i];
+    const oldDeps = oldHook ? JSON.stringify(oldHook.deps) : null;
+    const newDeps = JSON.stringify(hook.deps);
+    const depsChanged = oldHook && oldDeps !== newDeps;
+
+    const typeLabel = hook.type === 'effect' ? 'useEffect' : 'useMemo';
+
+    const card = document.createElement('div');
+    card.className = 'deps-card' + (depsChanged ? ' deps-card-changed' : ' deps-card-same');
+
+    // 헤더
+    const header = document.createElement('div');
+    header.className = 'deps-card-header';
+
+    const indexSpan = document.createElement('span');
+    indexSpan.className = 'hook-index';
+    indexSpan.textContent = 'hooks[' + i + ']';
+    header.appendChild(indexSpan);
+
+    const typeSpan = document.createElement('span');
+    typeSpan.className = 'hook-type hook-type-' + typeLabel;
+    typeSpan.textContent = typeLabel;
+    header.appendChild(typeSpan);
+
+    const statusSpan = document.createElement('span');
+    statusSpan.className = 'deps-status ' + (depsChanged ? 'deps-status-run' : 'deps-status-skip');
+    statusSpan.textContent = depsChanged
+      ? (hook.type === 'effect' ? '실행' : '재계산')
+      : '스킵';
+    header.appendChild(statusSpan);
+
+    card.appendChild(header);
+
+    // deps 변화 표시
+    const body = document.createElement('div');
+    body.className = 'deps-card-body';
+
+    if (!oldHook) {
+      // 첫 렌더링
+      const row = document.createElement('div');
+      row.className = 'deps-row';
+      row.textContent = '초기값: ' + newDeps;
+      body.appendChild(row);
+    } else if (depsChanged) {
+      // 각 인덱스별로 변화 표시
+      const oldArr = JSON.parse(oldDeps);
+      const newArr = JSON.parse(newDeps);
+      oldArr.forEach(function(oldVal, j) {
+        const row = document.createElement('div');
+        row.className = 'deps-row';
+        const itemChanged = !Object.is(oldVal, newArr[j]);
+        if (itemChanged) {
+          row.classList.add('deps-row-changed');
+        }
+        row.textContent = '[' + j + '] ' + JSON.stringify(oldVal) + ' → ' + JSON.stringify(newArr[j]);
+        body.appendChild(row);
+      });
+    } else {
+      const row = document.createElement('div');
+      row.className = 'deps-row';
+      row.textContent = newDeps;
+      body.appendChild(row);
+    }
+
+    card.appendChild(body);
+    area.appendChild(card);
+  });
+
+  if (!hasAny) {
+    const empty = document.createElement('p');
+    empty.className = 'panel-empty';
+    empty.textContent = '(useEffect/useMemo 없음)';
+    area.appendChild(empty);
+  }
 }
 
 // =============================================
