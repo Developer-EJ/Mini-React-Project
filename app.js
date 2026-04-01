@@ -500,7 +500,6 @@ function App() {
   // game.js 내부 상태를 hooks 상태와 동기화
   restoreGameState(gs);
 
-  // gameComponents.js 완성 전까지 generateProfileVNode() 사용
   return generateProfileVNode();
 }
 
