@@ -32,54 +32,54 @@ ProfileCard
 
 ### 2. State
 
-State는 화면을 바꾸는 기준이 되는 데이터입니다.
+#### 이전 방식
+화면에 필요한 값을 직접 계산하고, 변경이 생기면 다시 화면 구조를 수동으로 만들어야 하는 방식
 
-- 현재 레벨 인덱스
-- 경험치
-- 골드
+#### 개선 방식
+경험치, 골드, 레벨처럼 화면을 변화시키는 데이터를 상태로 관리하고, 상태 변경이 재렌더링으로 이어지도록 연결하는 구조로 개선
+값의 변화가 화면 변화와 자연스럽게 이어지도록 구성
 
-즉 상태가 바뀌면:
-
-- 경험치 바가 바뀌고
-- 골드 표시가 바뀌고
-- 레벨에 따라 기술 스택과 프로젝트도 달라집니다
-
-그래서 상태를 저장하는 것뿐 아니라,  
-상태 변경 이후 화면을 다시 계산하는 구조가 중요했습니다.
+#### 이번 프로젝트 적용 방식
+- `game.js`의 `gameState`를 통한 게임 상태 관리
+- `useState`를 통한 렌더링과 연결되는 상태 흐름 구성
 
 ### 3. Hooks
 
-Hooks는 함수형 컴포넌트 안에서 상태와 부수효과를 다루기 위한 구조입니다.
+#### 이전 방식
+- 함수형 컴포넌트 안에서 상태를 기억하거나, 렌더링 이후 동작을 연결하기 어려운 방식
 
-이번 프로젝트에서는 아래 3가지를 직접 구현했습니다.
+#### 개선 방식
+- 함수형 컴포넌트에서도 상태, effect, 계산 결과를 관리할 수 있도록 Hook 구조를 추가
+- 렌더링마다 같은 순서로 값을 꺼내 쓰도록 만들어 상태가 유지되게 구성
 
-- `useState`
-  - 상태 저장 및 setter 제공
-- `useEffect`
-  - 렌더링 이후 실행되는 부수 효과 처리
-- `useMemo`
-  - 비싼 계산 결과를 재사용
+#### 이번 프로젝트 적용 방식
+- `useState`: 상태 저장과 재렌더링 예약
+- `useEffect`: 렌더링 이후 부수 효과 처리
+- `useMemo`: deps가 같으면 이전 계산 결과 재사용
+- Hook 값은 `hooks[]` 배열에 저장하고, `hookIndex`로 순서를 관리
 
-Hook 상태는 함수 내부가 아니라 `hooks[]` 배열에 저장되며,  
-`hookIndex`를 통해 매 렌더링마다 같은 순서로 접근합니다.
+## 🏛️ FunctionComponent 클래스 정의 및 사용 이유
 
-## 🏛️ FunctionComponent의 역할
+함수는 호출될 때 실행되고 끝나면 내부 값 소실. 렌더링 사이에 필요한 정보를 계속 들고 있기 어려움.
 
-`FunctionComponent`는 함수형 컴포넌트가 React처럼 동작할 수 있도록  
-렌더링 흐름과 Hook 상태를 연결하는 핵심 구조입니다.
+### 재렌더링에 필요한 값들
 
-주요 역할은 다음과 같습니다.
+| 값 | 역할 |
+|----|------|
+| `vNode` | 이전 렌더 결과 저장, 새 VNode와 비교하는 기준값 |
+| `hooks[]` | `useState`, `useEffect`, `useMemo` 등의 Hook 상태 저장 공간 |
+| `hookIndex` | 현재 몇 번째 Hook 호출인지 추적하는 값, Hook 순서 일치 보장 |
+| `container` | 실제 DOM이 붙어 있는 위치 저장, mount/update 대상 관리 |
 
-- 현재 렌더링 중인 컴포넌트 추적
-- Hook 상태가 저장될 공간(`hooks[]`) 제공
-- Hook 호출 순서(`hookIndex`) 관리
-- `mount()`를 통한 최초 렌더링 처리
-- `update()`를 통한 재렌더링 처리
-- 이전 VNode와 새 VNode를 비교해 diff / patch 연결
-- 렌더링 이후 effect 실행 시점 관리
+함수형 컴포넌트는 화면을 만드는 역할만 수행.
+그 함수를 실행하고 관리하는 주체를 클래스로 분리.
 
-즉, 단순히 함수를 실행하는 것이 아니라  
-함수형 컴포넌트가 상태를 가지는 구조로 동작할 수 있게 만드는 역할을 합니다.
+#### FunctionComponent의 역할
+
+- `FunctionComponent` 클래스가 컴포넌트 함수 `fn`을 받아 실행
+- 인스턴스가 `hooks[]`, `hookIndex`, `vNode`, `container`를 보관
+- `mount()`로 최초 렌더링 수행
+- `update()`로 새 VNode를 만든 뒤 `diff()` / `patch()` 실행
 
 ### 역할 분리 구조
 
@@ -97,84 +97,46 @@ hooks.js
  └── useState / useEffect / useMemo 구현
 ```
 
-### Component 구조
 
 
+## 🚀 쟁점 포인트
 
-## 🏗️ 아키텍처
+### 1. 루트 컴포넌트 구조
 
-### 전체 흐름
+- `App()`은 `useState`, `useMemo`, `useEffect`를 사용해 전체 렌더링 흐름을 관리.
+- 자식 컴포넌트는 props만 받는 구조로 분리.
 
-```text
-gameState
-   ↓
-getCurrentLevel()
-   ↓
-generateProfileVNode()
-   ↓
-ProfileCard(props)
-   ↓
-하위 컴포넌트
-   ↓
-최종 VNode
-   ↓
-diff / patch
-   ↓
-실제 DOM 반영
-```
+- `ProfileCard` 이하 컴포넌트는 상태를 직접 갖지 않고,
+받은 props로 화면만 조립하는 순수 함수 형태로 동작.
 
-## 🚀 주요 구현 내용
+### 2. state의 위치
 
-### 게임 프로필 UI 컴포넌트 분리
+- 함수는 렌더링마다 재실행되므로 함수 내부 지역 변수로는 state 유지 불가능.
+- state는 FunctionComponent 인스턴스의 hooks[] 배열에 저장.
+- 함수 실행이 끝나도 인스턴스는 살아있기 때문에 이전 값을 기억 가능.
+- hookIndex로 호출 순서를 추적해, 매 렌더링마다 같은 슬롯에 접근.
 
-기존에는 `generateProfileVNode()` 안에서 `h1`, `p`, `ul`, `li`를 직접 조립했습니다.
+### 3. setState의 역할
 
-현재는:
+- 상태 변경 및 이후의 재렌더링 흐름 연결.
+- `hooks.js`의 setter 내부에서 상태 반영 후 update 예약 또는 실행 구조.
+- 상태 변화가 화면 변화로 이어지도록 만드는 핵심 연결 지점.
 
-- `game.js`는 상태와 레벨 정보를 정리하고
-- `generateProfileVNode()`는 `ProfileCard(props)`에 데이터를 전달하며
-- 실제 화면 조립은 `gameComponents.js`가 담당하도록 변경했습니다.
+### 4. batching 최적화
 
-### 조건부 섹션 처리
-
-`ProjectList`, `WeaknessList`, `StrengthList`는  
-데이터가 비어 있으면 `null`을 반환합니다.
-
-`ProfileCard`에서는:
-
-```js
-.filter((child) => child !== null)
-```
-
-을 사용하여 화면에 필요 없는 섹션을 children 배열에서 제거합니다.
-
-### Batching 확장
-
-기존에는 `setState()`가 호출될 때마다 바로 `update()`를 실행했습니다.
-
-이번 확장에서는:
-
-- 상태값은 즉시 반영하고
-- 렌더링은 `scheduleUpdate(component)`로 예약하고
-- 같은 턴 안의 여러 상태 변경은 한 번의 렌더링으로 묶도록 개선했습니다.
-
-즉:
-
-- 이전: 상태 변경마다 즉시 렌더링
-- 변경 후: 여러 변경을 모아서 한 번만 렌더링
+- 여러 상태 변경을 한 번의 렌더링으로 묶는 구조
+- `component.js`의 `isUpdateScheduled`를 통한 중복 예약 방지
+- `hooks.js`의 `scheduleUpdate(component)`를 통한 update 예약
+- 같은 턴 안의 여러 `setState`를 모아서 `update()` 1회 실행 구조
 
 ---
 
-## ✅ 배운 점
+## 테스트 케이스
 
-- React의 핵심은 JSX 문법보다 상태와 렌더링 흐름 설계라는 점을 이해했습니다.
-- Hook은 함수 내부가 아니라 외부 저장 구조(`hooks[]`)를 통해 이전 값을 기억한다는 점을 직접 구현하며 배웠습니다.
-- Component 분리를 통해 상태 관리와 UI 조립 책임을 나누는 것이 중요하다는 점을 확인했습니다.
-- batching처럼 작은 최적화도 렌더링 구조와 깊게 연결된다는 점을 배웠습니다.
-
----
-
-## 📌 한 줄 정리
-
-이 프로젝트는 Component, State, Hooks, FunctionComponent, batching 개념을 직접 구현하면서  
-React의 핵심 동작 원리를 이해하기 위한 mini React 프로젝트입니다.
+| 구분 | 핵심 검증 항목 |
+|------|----------------|
+| Component | 렌더링 등록, mount, update 흐름 검증 |
+| Hooks | `useState`, `useEffect`, `useMemo` 동작 검증 |
+| Batching | 여러 상태 변경의 단일 렌더링 처리 검증 |
+| Feature | 버튼 클릭, 레벨업 팝업, 상태-UI 연결 검증 |
+| Edge Case | Hook 예외, 골드 부족, 최대 레벨 처리 검증 |
