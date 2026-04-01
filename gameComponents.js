@@ -180,6 +180,42 @@ function StrengthList(props) {
 //   exp, maxExp,
 //   skills, projects, weaknesses, strengths
 // }
+// 프로필 카드 전체 구조를 하위 컴포넌트로 조립하여 반환
 function ProfileCard(props) {
-  throw new Error('미구현: ProfileCard');
+  const children = [
+    ProfileHeader({
+      name: props.name,
+      level: props.level,
+      levelIcon: props.levelIcon,
+      levelName: props.levelName
+    }),
+    CareerInfo({
+      career: props.career,
+      gold: props.gold,
+      hireReward: props.hireReward
+    }),
+    ExpBar({
+      exp: props.exp,
+      maxExp: props.maxExp
+    }),
+    { type: 'h3', props: {}, children: ['기술 스택'] },
+    SkillList({
+      skills: props.skills
+    }),
+    ProjectList({
+      projects: props.projects
+    }),
+    WeaknessList({
+      weaknesses: props.weaknesses
+    }),
+    StrengthList({
+      strengths: props.strengths
+    })
+  ].filter((child) => child !== null);
+
+  return {
+    type: 'div',
+    props: { class: 'profile' },
+    children: children
+  };
 }
