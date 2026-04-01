@@ -2,48 +2,37 @@
 
 > React의 핵심 원리를 Vanilla JavaScript로 직접 구현한 mini React 학습 프로젝트
 
-Virtual DOM, diff/patch, Function Component, State, Hooks 개념을 직접 구현하면서  
-React가 왜 이런 구조를 가지는지 이해하고 시연하기 위한 프로젝트입니다.
+## 프로젝트 개요
+기존 ‘개발자 키우기’ 게임을 디벨롭하여, Component · State · Hooks를 적용한 미니 React 구조를 구현.
 
-## 🎯 핵심 구현 포인트
-
-| 포인트 | 구현 방식 | 의미 |
-|--------|----------|------|
-| 🧩 Component 분리 | `ProfileHeader`, `CareerInfo`, `SkillList` 등으로 화면 분리 | UI 역할 분리와 재사용성 향상 |
-| 📦 State 관리 | `gameState` + `useState` | 상태 변경과 화면 갱신 흐름 학습 |
-| 🪝 Hooks | `useState`, `useEffect`, `useMemo` 직접 구현 | 함수형 컴포넌트의 상태/효과/메모 구조 이해 |
-| 🔄 렌더링 흐름 | `FunctionComponent` + `mount()` + `update()` | 상태 변경 후 재렌더링 구조 구현 |
-| 🌳 화면 구조 | VNode 기반 화면 표현 | 실제 DOM 전 변경 구조 비교 |
-| ⚡ 최적화 | batching 확장 | 여러 상태 변경을 한 번의 렌더링으로 묶기 |
 
 ## 🧠 핵심 개념
 
 ### 1. Component
 
-Component는 화면을 작은 역할 단위로 나누는 방식입니다.
+#### 이전 방식
+화면 구성 요소들을 하나의 코드에 하드코딩
 
-이번 프로젝트에서는 하나의 큰 화면을 직접 조립하지 않고 아래처럼 분리했습니다.
+#### 개선 방식
+화면을 작은 역할 단위의 컴포넌트로 분리해 조립하는 방식으로 구조를 개선. 
+각 UI 요소의 책임을 명확히 나누고, 코드의 재사용성과 유지보수성을 높일 수 있도록 구성.
 
-- `ProfileHeader`
-- `CareerInfo`
-- `ExpBar`
-- `SkillList`
-- `ProjectList`
-- `WeaknessList`
-- `StrengthList`
-- `ProfileCard`
+```text
+ProfileCard
+ ├── ProfileHeader
+ ├── CareerInfo
+ ├── ExpBar
+ ├── SkillList
+ ├── ProjectList
+ ├── WeaknessList
+ └── StrengthList
+```
 
-이를 통해:
-
-- UI 구조를 더 명확하게 만들고
-- 수정 범위를 줄이고
-- 최종적으로 `ProfileCard`가 화면 전체를 조립하도록 구성했습니다.
+- `ProfileCard`가 화면 전체를 조립하도록 구성.
 
 ### 2. State
 
 State는 화면을 바꾸는 기준이 되는 데이터입니다.
-
-이번 프로젝트에서 중요한 상태는 다음과 같습니다.
 
 - 현재 레벨 인덱스
 - 경험치
@@ -110,16 +99,7 @@ hooks.js
 
 ### Component 구조
 
-```text
-ProfileCard
- ├── ProfileHeader
- ├── CareerInfo
- ├── ExpBar
- ├── SkillList
- ├── ProjectList
- ├── WeaknessList
- └── StrengthList
-```
+
 
 ## 🏗️ 아키텍처
 
