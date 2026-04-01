@@ -69,6 +69,7 @@ class FunctionComponent {
     this.hookIndex = 0;   // 현재 렌더링 중 hook 호출 순서 추적
     this.vNode = null;    // 이전 렌더링 결과 VNode (diff용 oldNode)
     this.container = null; // 마운트된 실제 DOM 컨테이너
+    this.isUpdateScheduled = false; // update가 이미 예약되었는지 여부
   }
 
   // 최초 렌더링

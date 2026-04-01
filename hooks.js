@@ -30,9 +30,7 @@ function useState(initialValue) {
       const prevValue = slot.value;
       slot.value = typeof nextValue === 'function' ? nextValue(prevValue) : nextValue;
 
-      if (typeof component.update === 'function') {
-        component.update();
-      }
+      scheduleUpdate(component);
     } catch (error) {
       console.error('useState 상태 변경 중 오류', error);
       throw error;
@@ -109,6 +107,24 @@ function useMemo(factory, deps) {
   }
 
   return slot.value;
+}
+
+// 같은 턴 안의 여러 상태 변경을 한 번의 update로 묶기 위해 렌더링을 예약
+function scheduleUpdate(component) {
+  if (!component || typeof component.update !== 'function') {
+    return;
+  }
+
+  if (component.isUpdateScheduled) {
+    return;
+  }
+
+  component.isUpdateScheduled = true;
+
+  queueMicrotask(function () {
+    component.isUpdateScheduled = false;
+    component.update();
+  });
 }
 
 function getHookContext() {
