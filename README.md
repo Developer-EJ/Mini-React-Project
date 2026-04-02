@@ -2,6 +2,8 @@
 
 > React의 핵심 원리를 Vanilla JavaScript로 직접 구현한 mini React 학습 프로젝트
 
+<img width="1918" height="861" alt="image" src="https://github.com/user-attachments/assets/0183b481-c122-48ac-84b7-fe6ded115bbc" />
+
 ## 프로젝트 개요
 기존 ‘개발자 키우기’ 게임을 디벨롭하여, Component · State · Hooks를 적용한 미니 React 구조를 구현.
 
